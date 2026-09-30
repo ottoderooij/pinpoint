@@ -133,7 +133,7 @@ function recordDailyResult(total, rounds) {
   stats.played = (stats.played || 0) + 1;
   stats.best = Math.max(stats.best || 0, total);
   stats.lastPlayed = today;
-  stats.today = { total, rounds };
+  stats.today = { total, rounds, squares: rounds.map((r) => emojiFor(r.score)).join(""), postedTo: [] };
   saveStats(stats);
   return stats;
 }
@@ -304,7 +304,8 @@ function shareText() {
   const title = game.daily ? `Pinpoint #${puzzleNumber()}` : "Pinpoint (practice)";
   const stats = loadStats();
   const streak = game.daily && stats.streak ? ` · 🔥${stats.streak}` : "";
-  const link = location.hostname === "localhost" ? "" : `\n${location.origin}${location.pathname}`;
+  const group = Leaderboard.enabled ? Leaderboard.loadProfile().group : "";
+  const link = location.hostname === "localhost" ? "" : `\n${Leaderboard.inviteLink(group)}`;
   return `🛰️ ${title}\n${squares} ${game.total}/${ROUNDS * MAX_ROUND_SCORE}${streak}${link}`;
 }
 
@@ -330,6 +331,89 @@ function endGame() {
   $("share-preview").textContent = shareText();
   renderStats($("end-stats"));
   showScreen("screen-end");
+  if (game.daily) showPanel("end-board-slot");
+  else $("lb-parking").appendChild($("lb-panel"));
+}
+
+// ================= Leaderboard panel =================
+function showPanel(slotId, forceForm = false) {
+  if (!Leaderboard.enabled) return;
+  const panel = $("lb-panel");
+  $(slotId).appendChild(panel);
+
+  const profile = Leaderboard.loadProfile();
+  const needsForm = forceForm || !profile.name || !profile.group;
+  $("lb-form").classList.toggle("hidden-block", !needsForm);
+  $("lb-content").classList.toggle("hidden-block", needsForm);
+  if (needsForm) {
+    $("lb-name").value = profile.name || "";
+    $("lb-group").value = profile.group || "";
+    return;
+  }
+  $("lb-title").textContent = `Today in "${profile.group}"`;
+  loadBoard(profile);
+}
+
+async function loadBoard(profile) {
+  const board = $("lb-board");
+  board.innerHTML = `<p class="lb-empty">Loading…</p>`;
+  const day = todayKey();
+  try {
+    // Post today's score to this group if we haven't yet.
+    const stats = loadStats();
+    if (stats.lastPlayed === day && stats.today && !(stats.today.postedTo || []).includes(profile.group)) {
+      await Leaderboard.submit({
+        day,
+        group: profile.group,
+        name: profile.name,
+        playerId: profile.playerId,
+        score: stats.today.total,
+        squares: stats.today.squares || "",
+      });
+      stats.today.postedTo = [...(stats.today.postedTo || []), profile.group];
+      saveStats(stats);
+    }
+    const rows = await Leaderboard.fetchBoard(day, profile.group);
+    Leaderboard.renderBoard(board, rows, profile.playerId);
+    if (stats.lastPlayed !== day) {
+      board.insertAdjacentHTML("beforeend", `<p class="lb-empty">Play today's puzzle to get on the board.</p>`);
+    }
+  } catch (err) {
+    console.error(err);
+    board.innerHTML = `<p class="lb-empty">Couldn't reach the leaderboard. Check your connection and try again.</p>`;
+  }
+}
+
+function joinGroup(e) {
+  e.preventDefault();
+  const name = Leaderboard.cleanName($("lb-name").value);
+  const group = Leaderboard.cleanGroup($("lb-group").value);
+  if (!name || !group) {
+    toast("Fill in a nickname and group");
+    return;
+  }
+  const profile = Leaderboard.loadProfile();
+  Leaderboard.saveProfile({ ...profile, name, group });
+  // Drop ?g= from the address bar so it no longer overrides the saved group.
+  history.replaceState(null, "", location.pathname);
+  showPanel($("lb-panel").parentElement.id);
+  if ($("screen-end").classList.contains("active")) $("share-preview").textContent = shareText();
+}
+
+async function invite() {
+  const { group } = Leaderboard.loadProfile();
+  const url = Leaderboard.inviteLink(group);
+  const text = `Join my Pinpoint group "${group}" and let's compare daily scores 🛰️`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ text, url });
+      return;
+    }
+    await navigator.clipboard.writeText(`${text}\n${url}`);
+    toast("Invite link copied!");
+  } catch {
+    toast(url);
+  }
 }
 
 async function share() {
@@ -375,5 +459,14 @@ $("btn-next").addEventListener("click", nextRound);
 $("btn-share").addEventListener("click", share);
 $("btn-home").addEventListener("click", renderStart);
 guessMap.on("click", placeGuess);
+$("btn-board").addEventListener("click", () => {
+  showScreen("screen-board");
+  showPanel("board-slot");
+});
+$("btn-board-back").addEventListener("click", renderStart);
+$("lb-form").addEventListener("submit", joinGroup);
+$("btn-invite").addEventListener("click", invite);
+$("btn-lb-change").addEventListener("click", () => showPanel($("lb-panel").parentElement.id, true));
 
+if (Leaderboard.enabled) document.body.classList.add("lb-on");
 renderStart();

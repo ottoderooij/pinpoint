@@ -22,3 +22,13 @@ Settings are at the top of `game.js` (rounds, zoom penalty, etc.).
 - Satellite imagery: Esri World Imagery (free for non-commercial use with attribution)
 - Guess map: © OpenStreetMap contributors (fine for light use; switch to a tile provider for real traffic)
 - Map library: Leaflet
+
+## Friends leaderboard (Supabase)
+1. Create a free account and project at https://supabase.com
+2. In the project, open **SQL Editor → New query**, paste `supabase-setup.sql` and click **Run**
+3. Go to **Project Settings → API** (or click **Connect**) and copy the **Project URL** and the **anon / publishable** key
+4. Paste them into `config.js`. Never use the `service_role` / secret key
+5. Commit and push. The 🏆 buttons show up automatically
+
+Players choose a nickname + group. Invite links look like `…/pinpoint/?g=groupname`.
+Note: scores are sent from the browser, so a tech-savvy friend could fake one. Fine for fun among friends.

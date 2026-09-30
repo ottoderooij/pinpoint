@@ -233,3 +233,65 @@ h1 { margin: 0; font-size: 2.2rem; letter-spacing: -0.02em; }
 .leaflet-control-attribution { font-size: 9px; }
 #clue-map .leaflet-control-attribution { margin-bottom: 84px; }
 .pin-actual { font-size: 28px; line-height: 1; }
+
+/* ---------- Leaderboard ---------- */
+body:not(.lb-on) .lb-only, body:not(.lb-on) .lb-panel { display: none !important; }
+
+#screen-board.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.lb-panel {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lb-panel h2 { margin: 0; font-size: 1.1rem; }
+.lb-hint { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+.lb-form { display: flex; flex-direction: column; gap: 8px; }
+.lb-form input {
+  background: var(--bg);
+  border: 1px solid var(--secondary);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px;
+  font-size: 1rem;
+}
+.lb-form input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.hidden-block { display: none !important; }
+
+.lb-board { display: flex; flex-direction: column; gap: 4px; }
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+.lb-row.me { outline: 2px solid var(--accent); }
+.lb-rank { width: 26px; text-align: center; font-weight: 700; }
+.lb-name { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lb-name small { font-size: 0.7rem; letter-spacing: 1px; }
+.lb-score { font-weight: 700; }
+.lb-empty { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+.lb-actions { display: flex; flex-direction: column; gap: 6px; }
+.link-btn {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  text-decoration: underline;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px;
+}

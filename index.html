@@ -22,6 +22,7 @@
       <p class="date" id="start-date"></p>
       <button id="btn-daily" class="btn primary">Play today's puzzle</button>
       <button id="btn-practice" class="btn ghost">Practice (random)</button>
+      <button id="btn-board" class="btn ghost lb-only">🏆 Today's ranking</button>
       <div class="stats" id="start-stats"></div>
       <details class="howto">
         <summary>How to play</summary>
@@ -78,14 +79,45 @@
       <div class="end-grid" id="end-grid"></div>
       <pre class="share-preview" id="share-preview"></pre>
       <button id="btn-share" class="btn primary">Share result</button>
+      <div id="end-board-slot"></div>
       <button id="btn-home" class="btn ghost">Back to menu</button>
       <div class="stats" id="end-stats"></div>
     </div>
   </section>
 
+  <!-- Leaderboard screen -->
+  <section id="screen-board" class="screen">
+    <div class="start-card">
+      <div id="board-slot"></div>
+      <button id="btn-board-back" class="btn ghost">Back to menu</button>
+    </div>
+  </section>
+
+  <!-- Leaderboard panel: moved into whichever screen needs it, parked here otherwise -->
+  <div id="lb-parking" hidden>
+  <div id="lb-panel" class="lb-panel">
+    <h2>🏆 <span id="lb-title">Today's ranking</span></h2>
+    <form id="lb-form" class="lb-form">
+      <p class="lb-hint">Pick a nickname and a group. Friends who join the same group see each other's daily scores.</p>
+      <input id="lb-name" maxlength="20" placeholder="Your nickname" autocomplete="nickname" required />
+      <input id="lb-group" maxlength="30" placeholder="Group name, e.g. vrienden" autocapitalize="off" required />
+      <button type="submit" class="btn primary">Join group</button>
+    </form>
+    <div id="lb-content">
+      <div id="lb-board" class="lb-board"></div>
+      <div class="lb-actions">
+        <button id="btn-invite" class="btn secondary">📨 Invite friends</button>
+        <button id="btn-lb-change" class="link-btn">Change name / group</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="config.js"></script>
+  <script src="leaderboard.js"></script>
   <script src="locations.js"></script>
   <script src="game.js"></script>
 </body>
