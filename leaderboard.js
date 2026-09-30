@@ -65,19 +65,20 @@ const Leaderboard = (() => {
     return url.toString();
   }
 
-  async function submit({ day, group, name, playerId, score, squares }) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?on_conflict=day,group_code,player_id`, {
+  async function submit({ day, mode, group, name, playerId, score, squares }) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/scores?on_conflict=day,mode,group_code,player_id`, {
       method: "POST",
       headers: { ...headers, Prefer: "resolution=ignore-duplicates,return=minimal" },
-      body: JSON.stringify({ day, group_code: group, name, player_id: playerId, score, squares }),
+      body: JSON.stringify({ day, mode, group_code: group, name, player_id: playerId, score, squares }),
     });
     if (!res.ok) throw new Error(`Submit failed (${res.status})`);
   }
 
-  async function fetchBoard(day, group) {
+  async function fetchBoard(day, mode, group) {
     const params = new URLSearchParams({
       select: "name,score,squares,player_id",
       day: `eq.${day}`,
+      mode: `eq.${mode}`,
       group_code: `eq.${group}`,
       order: "score.desc,created_at.asc",
       limit: "50",

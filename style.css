@@ -295,3 +295,32 @@ body:not(.lb-on) .lb-only, body:not(.lb-on) .lb-panel { display: none !important
   cursor: pointer;
   padding: 4px;
 }
+
+/* ---------- Mode picker ---------- */
+.modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
+  gap: 8px;
+}
+.mode {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 4px;
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.08s;
+}
+.mode:active { transform: scale(0.97); }
+.mode.selected { border-color: var(--accent); }
+.mode-emoji { font-size: 1.8rem; line-height: 1; }
+.mode-done { position: absolute; top: 4px; right: 6px; font-size: 0.75rem; }
+.mode-desc { margin: -2px 0 4px; color: var(--muted); font-size: 0.85rem; min-height: 1.2em; }

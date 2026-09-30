@@ -49,7 +49,7 @@ function mulberry32(seed) {
 }
 
 function pickLocations(random) {
-  const pool = [...LOCATIONS];
+  const pool = [...MODES[currentMode].places];
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -102,20 +102,44 @@ function toast(message) {
   toastTimer = setTimeout(() => el.classList.remove("show"), 2000);
 }
 
-// ================= Saved stats (localStorage) =================
-const STORAGE_KEY = "pinpoint-stats";
+// ================= Game mode =================
+const MODE_KEY = "pinpoint-mode";
+let currentMode = "classic";
+try {
+  const saved = localStorage.getItem(MODE_KEY);
+  if (MODES[saved]) currentMode = saved;
+} catch {}
 
-function loadStats() {
+function setMode(mode) {
+  currentMode = mode;
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch {
-    return {};
-  }
+    localStorage.setItem(MODE_KEY, mode);
+  } catch {}
+  renderStart();
 }
 
-function saveStats(stats) {
+// ================= Saved stats (localStorage), kept per mode =================
+const STORAGE_KEY = "pinpoint-stats";
+
+function loadAllStats() {
+  let all = {};
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+    all = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch {}
+  // Stats from before game modes existed belong to Landmarks.
+  if ("played" in all || "lastPlayed" in all) all = { classic: all };
+  return all;
+}
+
+function loadStats(mode = currentMode) {
+  return loadAllStats()[mode] || {};
+}
+
+function saveStats(stats, mode = currentMode) {
+  const all = loadAllStats();
+  all[mode] = stats;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   } catch {
     // Storage unavailable (private mode) - the game still works, just without history.
   }
@@ -171,7 +195,9 @@ let resultLayers = [];
 let game = null;
 
 function newGame(daily) {
-  const seed = daily ? hashString("pinpoint-" + todayKey()) : Math.floor(Math.random() * 2 ** 32);
+  // Landmarks keeps its original seed so puzzles from before modes stay the same.
+  const seedKey = currentMode === "classic" ? "pinpoint-" : `pinpoint-${currentMode}-`;
+  const seed = daily ? hashString(seedKey + todayKey()) : Math.floor(Math.random() * 2 ** 32);
   game = {
     daily,
     locations: pickLocations(mulberry32(seed)),
@@ -301,7 +327,9 @@ function nextRound() {
 // ================= End screen =================
 function shareText() {
   const squares = game.results.map((r) => emojiFor(r.score)).join("");
-  const title = game.daily ? `Pinpoint #${puzzleNumber()}` : "Pinpoint (practice)";
+  const mode = MODES[currentMode];
+  const modeName = currentMode === "classic" ? "" : ` ${mode.name}`;
+  const title = game.daily ? `Pinpoint${modeName} #${puzzleNumber()}` : `Pinpoint${modeName} (practice)`;
   const stats = loadStats();
   const streak = game.daily && stats.streak ? ` · 🔥${stats.streak}` : "";
   const group = Leaderboard.enabled ? Leaderboard.loadProfile().group : "";
@@ -350,7 +378,7 @@ function showPanel(slotId, forceForm = false) {
     $("lb-group").value = profile.group || "";
     return;
   }
-  $("lb-title").textContent = `Today in "${profile.group}"`;
+  $("lb-title").textContent = `${MODES[currentMode].emoji} ${MODES[currentMode].name} in "${profile.group}"`;
   loadBoard(profile);
 }
 
@@ -364,6 +392,7 @@ async function loadBoard(profile) {
     if (stats.lastPlayed === day && stats.today && !(stats.today.postedTo || []).includes(profile.group)) {
       await Leaderboard.submit({
         day,
+        mode: currentMode,
         group: profile.group,
         name: profile.name,
         playerId: profile.playerId,
@@ -373,7 +402,7 @@ async function loadBoard(profile) {
       stats.today.postedTo = [...(stats.today.postedTo || []), profile.group];
       saveStats(stats);
     }
-    const rows = await Leaderboard.fetchBoard(day, profile.group);
+    const rows = await Leaderboard.fetchBoard(day, currentMode, profile.group);
     Leaderboard.renderBoard(board, rows, profile.playerId);
     if (stats.lastPlayed !== day) {
       board.insertAdjacentHTML("beforeend", `<p class="lb-empty">Play today's puzzle to get on the board.</p>`);
@@ -438,6 +467,19 @@ function renderStart() {
     month: "long",
   }) + ` · #${puzzleNumber()}`;
 
+  const today = todayKey();
+  $("modes").innerHTML = Object.entries(MODES)
+    .map(([key, m]) => {
+      const done = loadStats(key).lastPlayed === today;
+      return `<button class="mode${key === currentMode ? " selected" : ""}" data-mode="${key}">
+        <span class="mode-emoji">${m.emoji}</span>
+        <span class="mode-name">${m.name}</span>
+        ${done ? `<span class="mode-done">✅</span>` : ""}
+      </button>`;
+    })
+    .join("");
+  $("mode-desc").textContent = MODES[currentMode].description;
+
   const stats = loadStats();
   const playedToday = stats.lastPlayed === todayKey();
   $("btn-daily").textContent = playedToday
@@ -449,6 +491,10 @@ function renderStart() {
 }
 
 // ================= Wire up =================
+$("modes").addEventListener("click", (e) => {
+  const button = e.target.closest("[data-mode]");
+  if (button) setMode(button.dataset.mode);
+});
 $("btn-daily").addEventListener("click", () => newGame(true));
 $("btn-practice").addEventListener("click", () => newGame(false));
 $("btn-zoomout").addEventListener("click", zoomOut);

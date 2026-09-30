@@ -12,8 +12,12 @@ Or install the **Live Server** extension in VS Code, right-click `index.html` �
 ## Files
 - `index.html`: the screens (start, game, end)
 - `style.css`: the look (mobile-first)
-- `locations.js`: the list of places. Add your own!
+- `locations.js`: the game modes and their places. Add your own!
 - `game.js`: the game logic (daily seed, scoring, streaks, sharing)
+
+## Game modes
+There are three modes: 🏛️ Landmarks, 🏟️ Stadiums and 🏙️ Cities. Each has its own daily puzzle, streak and leaderboard.
+To add a mode, copy one of the blocks in `locations.js`, give it a new key (e.g. `nature`), a name, an emoji and a list of places. It shows up on the menu automatically.
 
 ## Tweak it
 Settings are at the top of `game.js` (rounds, zoom penalty, etc.).

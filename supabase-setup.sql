@@ -5,15 +5,16 @@ create table if not exists public.scores (
   id          bigint generated always as identity primary key,
   created_at  timestamptz not null default now(),
   day         date not null,
+  mode        text not null default 'classic',
   group_code  text not null,
   player_id   uuid not null,
   name        text not null,
   score       int  not null,
   squares     text not null default '',
-  unique (day, group_code, player_id)
+  unique (day, mode, group_code, player_id)
 );
 
-create index if not exists scores_day_group_idx on public.scores (day, group_code, score desc);
+create index if not exists scores_day_mode_group_idx on public.scores (day, mode, group_code, score desc);
 
 -- Row Level Security: anyone may read scores and add one score per day,
 -- but nobody can edit or delete them through the public key.
@@ -33,6 +34,7 @@ create policy "Anyone can add a sensible score"
     score between 0 and 5000
     and char_length(name) between 1 and 20
     and char_length(group_code) between 1 and 30
+    and char_length(mode) between 1 and 20
     and char_length(squares) <= 40
     and day between current_date - 1 and current_date + 1
   );
