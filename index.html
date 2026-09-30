@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Pinpoint</title>
+  <meta name="description" content="A daily geography game: guess where the satellite image is. Fewer zoom-outs, more points." />
+  <meta property="og:title" content="🛰️ Pinpoint" />
+  <meta property="og:description" content="Where on Earth is this? 5 satellite images a day. Can you beat my score?" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛰️</text></svg>" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Start screen -->
+  <section id="screen-start" class="screen active">
+    <div class="start-card">
+      <div class="logo">🛰️</div>
+      <h1>Pinpoint</h1>
+      <p class="tagline">Where on Earth is this?</p>
+      <p class="date" id="start-date"></p>
+      <button id="btn-daily" class="btn primary">Play today's puzzle</button>
+      <button id="btn-practice" class="btn ghost">Practice (random)</button>
+      <div class="stats" id="start-stats"></div>
+      <details class="howto">
+        <summary>How to play</summary>
+        <ul>
+          <li>You get 5 satellite images, starting zoomed in close.</li>
+          <li>Stuck? Tap <b>Zoom out</b> to see more, but each zoom-out costs points.</li>
+          <li>Tap <b>Guess</b>, drop a pin on the world map, and confirm.</li>
+          <li>The closer your pin, the more points (max 1000 per round).</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <!-- Game screen -->
+  <section id="screen-game" class="screen">
+    <div id="clue-map"></div>
+
+    <header class="hud">
+      <span id="hud-round">Round 1/5</span>
+      <span id="hud-score">0 pts</span>
+    </header>
+
+    <div class="zoom-pips" id="zoom-pips"></div>
+
+    <footer class="controls">
+      <button id="btn-zoomout" class="btn secondary">➖ Zoom out <small id="zoom-cost"></small></button>
+      <button id="btn-open-guess" class="btn primary">📍 Guess</button>
+    </footer>
+
+    <!-- Guess sheet -->
+    <div id="guess-sheet" class="sheet">
+      <div class="sheet-handle"></div>
+      <div id="guess-map"></div>
+      <div class="sheet-controls">
+        <button id="btn-close-guess" class="btn ghost">Back</button>
+        <button id="btn-confirm" class="btn primary" disabled>Tap the map to place a pin</button>
+      </div>
+      <div id="result" class="result hidden">
+        <div class="result-emoji" id="result-emoji"></div>
+        <div class="result-name" id="result-name"></div>
+        <div class="result-detail" id="result-detail"></div>
+        <a id="result-wiki" target="_blank" rel="noopener">Read about it on Wikipedia ↗</a>
+        <button id="btn-next" class="btn primary">Next round</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- End screen -->
+  <section id="screen-end" class="screen">
+    <div class="start-card">
+      <div class="logo" id="end-emoji">🏁</div>
+      <h1 id="end-total"></h1>
+      <p class="tagline" id="end-grade"></p>
+      <div class="end-grid" id="end-grid"></div>
+      <pre class="share-preview" id="share-preview"></pre>
+      <button id="btn-share" class="btn primary">Share result</button>
+      <button id="btn-home" class="btn ghost">Back to menu</button>
+      <div class="stats" id="end-stats"></div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="locations.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
